@@ -1,0 +1,14 @@
+db:
+  connection: "postgres://postgres:Password!@localhost/postgres?sslmode=disable"
+period: 5
+metrics:
+  - name: "supermetric1"
+    lowerBound: 10
+    upperBound: 100
+  - name: "supermetric2"
+    lowerBound: 40
+    upperBound: 60
+
+notifiers:
+  log:
+    enable: true

@@ -1,10 +1,10 @@
 package checkerc
 
 import (
+	"errors"
 	"fmt"
 	c "github.com/arzonus/alertmetrics/pkg/checker"
 	m "github.com/arzonus/alertmetrics/pkg/model"
-	"github.com/vulteam/api/libs/errors"
 )
 
 type CheckerController struct {
@@ -14,10 +14,11 @@ type CheckerController struct {
 	items  chan *m.Items
 }
 
-func NewCheckerController(report chan string, items chan *m.Items) {
+func New(report chan string, items chan *m.Items, checker *c.Checker) *CheckerController {
 	return &CheckerController{
-		report: report,
-		items:  items,
+		report:  report,
+		items:   items,
+		checker: checker,
 	}
 }
 
@@ -36,9 +37,11 @@ func (c *CheckerController) Run() error {
 func (c *CheckerController) run() {
 	go func(c *CheckerController) {
 		for {
-			var items = new(m.Items)
-			items <- c.items
-			c.report <- c.checker.CheckItems(&items).Report()
+			items := <-c.items
+			checkedItems := c.checker.CheckItems(*items)
+			if checkedItems != nil {
+				c.report <- checkedItems.Report()
+			}
 		}
 	}(c)
 }

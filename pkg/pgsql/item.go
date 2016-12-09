@@ -10,7 +10,7 @@ type Item struct{}
 type ItemModel struct {
 	ID nullString
 
-	Metrics map[string]nullInt64
+	Metrics map[string]uint
 
 	Created nullTime
 }
@@ -29,8 +29,8 @@ func (Item) ListSinceTime(db db.IDatabase, sinceTime time.Time) (*m.Items, error
 
 	strsql := `
 		SELECT *
-		FROM item_metrics
-		WHERE created_time > $1`
+		FROM metrics.item_metrics
+		WHERE created > $1`
 
 	rows, err := db.Query(strsql, newNullTime(sinceTime))
 	if err != nil {
@@ -46,6 +46,7 @@ func (Item) ListSinceTime(db db.IDatabase, sinceTime time.Time) (*m.Items, error
 	// metric name in sql always equal metric name in config
 	for rows.Next() {
 		var im = new(ItemModel)
+		im.Metrics = make(map[string]uint)
 
 		columns := make([]interface{}, len(columnNames))
 		columnPointers := make([]interface{}, len(columnNames))
@@ -59,15 +60,18 @@ func (Item) ListSinceTime(db db.IDatabase, sinceTime time.Time) (*m.Items, error
 
 		// IN table ID field must be first
 		// IN table Created field must be last
-		im.ID = columns[0]
-		im.Created = columns[len(columns)-1]
+		im.ID = newNullString(string(columns[0].([]uint8)))
+		im.Created = newNullTime(columns[len(columns)-1].(time.Time))
 
 		for i := 1; i < len(columnNames)-1; i++ {
-			im.Metrics[columnNames[i]] = columns[i]
+			im.Metrics[columnNames[i]] = uint(columns[i].(int64))
 		}
 
 		*items = append(*items, *(im.convert()))
+	}
 
+	if len(*items) == 0 {
+		return nil, nil
 	}
 
 	return items, nil

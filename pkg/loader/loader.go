@@ -14,7 +14,7 @@ import (
 type Loader struct {
 	db     *sql.DB
 	items  chan *m.Items
-	period int
+	period uint
 
 	sinceTime time.Time
 
@@ -22,7 +22,7 @@ type Loader struct {
 	log logger.ILogger
 }
 
-func NewLoader(db *sql.DB, items chan *m.Items, period int, s storage.Storage, log logger.ILogger) *Loader {
+func New(db *sql.DB, items chan *m.Items, period uint, s storage.Storage, log logger.ILogger) *Loader {
 	return &Loader{
 		db:        db,
 		items:     items,
@@ -37,6 +37,9 @@ func (l *Loader) Run() error {
 	if l.period < 1 {
 		return errors.New(fmt.Sprintf("Loader: period value %d < 1", l.period))
 	}
+	if l.items == nil {
+		return errors.New("Loader: items channel is empty!")
+	}
 
 	l.run()
 
@@ -46,7 +49,7 @@ func (l *Loader) Run() error {
 func (l *Loader) run() {
 	go func(l *Loader) {
 		for {
-			time.Sleep(l.period * time.Second)
+			time.Sleep(time.Duration(l.period) * time.Second)
 			l.getItems()
 		}
 	}(l)
@@ -60,13 +63,12 @@ func (l *Loader) getItems() {
 	items, err = l.s.Item.ListSinceTime(l.db, l.sinceTime)
 	if err != nil {
 		l.log.Error(err)
+		return
 	}
 
-	if l.items != nil {
+	if items != nil {
 		l.sinceTime = nowTime
 		l.items <- items
 		return
 	}
-
-	l.log.Error("Items channel is nil!")
 }

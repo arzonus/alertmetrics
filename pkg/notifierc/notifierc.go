@@ -1,8 +1,8 @@
-package notifier
+package notifierc
 
 import (
+	"errors"
 	"fmt"
-	"github.com/vulteam/api/libs/errors"
 )
 
 type Notifier interface {
@@ -14,7 +14,7 @@ type NotifierController struct {
 	notifiers []Notifier
 }
 
-func NewNotifierController(report chan string, notifies Notifier) *NotifierController {
+func New(report chan string, notifies []Notifier) *NotifierController {
 	return &NotifierController{
 		report:    report,
 		notifiers: notifies,
@@ -25,7 +25,7 @@ func (n *NotifierController) Run() error {
 	if n.report == nil {
 		return errors.New(fmt.Sprint("Notifier: items chan is nill"))
 	}
-	if !(len(n.notifiers)) {
+	if len(n.notifiers) == 0 {
 		return errors.New(fmt.Sprint("Notifier: doesn't have notifiers"))
 	}
 
@@ -37,8 +37,7 @@ func (n *NotifierController) run() {
 
 	go func(n *NotifierController) {
 		for {
-			var report string
-			report <- n.report
+			report := <-n.report
 
 			for _, notifier := range n.notifiers {
 				go func(notifier Notifier, report string) {

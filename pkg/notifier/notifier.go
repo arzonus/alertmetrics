@@ -1,3 +1,3 @@
-package notifiers
+package notifier
 
 type Notifier struct{}

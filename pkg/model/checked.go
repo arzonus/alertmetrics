@@ -18,7 +18,7 @@ func (items CheckedItems) Report() string {
 
 	report := fmt.Sprintf(itemsReport, len(items))
 
-	return strings.Join(append([]string{report}, reports), "\n  ")
+	return strings.Join(append([]string{report}, reports...), "\n  ")
 
 }
 
@@ -38,7 +38,7 @@ func (c CheckedItem) Report() string {
 
 	report := fmt.Sprintf(itemReport, c.ID, len(c.Metrics))
 
-	return strings.Join(append([]string{report}, reports), "\n  ")
+	return strings.Join(append([]string{report}, reports...), "\n    ")
 }
 
 type CheckedMetric struct {

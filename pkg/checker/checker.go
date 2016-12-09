@@ -11,7 +11,7 @@ type Checker struct {
 	UpperBounds map[string]uint
 }
 
-func NewChecker(LowerBounds map[string]uint, UpperBounds map[string]uint) *Checker {
+func New(LowerBounds map[string]uint, UpperBounds map[string]uint) *Checker {
 	return &Checker{
 		LowerBounds: LowerBounds,
 		UpperBounds: UpperBounds,
@@ -44,11 +44,11 @@ func (c Checker) CheckItems(items m.Items) *m.CheckedItems {
 	for i := range items {
 		checkedItem := c.CheckItem(items[i])
 		if checkedItem != nil {
-			*checkedItems = append(*checkedItems, *(c.CheckItem(&items[i])))
+			*checkedItems = append(*checkedItems, *(c.CheckItem(items[i])))
 		}
 	}
 
-	if !len(checkedItems) {
+	if len(*checkedItems) == 0 {
 		return nil
 	}
 
@@ -65,7 +65,7 @@ func (c Checker) CheckItem(item m.Item) *m.CheckedItem {
 		}
 	}
 
-	if !len(metrics) {
+	if len(metrics) == 0 {
 		return nil
 	}
 
@@ -94,7 +94,7 @@ func (c Checker) CheckMetric(name string, value uint) *m.CheckedMetric {
 		return &m.CheckedMetric{
 			Name:           name,
 			Value:          value,
-			ComparingValue: ub,
+			ComparingValue: lb,
 			Upper:          false,
 		}
 	}
