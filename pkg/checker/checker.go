@@ -77,7 +77,11 @@ func (c Checker) CheckItem(item m.Item) *m.CheckedItem {
 }
 
 func (c Checker) CheckMetric(name string, value uint) *m.CheckedMetric {
-	var ub = c.UpperBounds[name]
+
+	ub, ok := c.UpperBounds[name]
+	if !ok {
+		return nil
+	}
 
 	if ub < value {
 		return &m.CheckedMetric{
@@ -88,7 +92,10 @@ func (c Checker) CheckMetric(name string, value uint) *m.CheckedMetric {
 		}
 	}
 
-	var lb = c.LowerBounds[name]
+	lb, ok := c.LowerBounds[name]
+	if !ok {
+		return nil
+	}
 
 	if lb > value {
 		return &m.CheckedMetric{
